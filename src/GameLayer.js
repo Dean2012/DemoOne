@@ -1,0 +1,187 @@
+/**********************
+ *  GameLayer.js
+ *  游戏主场景层
+ *
+ *  For DemoOne
+ *  Created by Dean on 15/11/18
+ **********************/
+
+var GameLayer = cc.Layer.extend({
+
+    _tagName : "soldier",
+
+    _myPosList : [
+        {"x": cc.winSize.width * 0.1,"y": cc.winSize.height * 0.3},
+        {"x": cc.winSize.width * 0.3,"y": cc.winSize.height * 0.4},
+        {"x": cc.winSize.width * 0.2,"y": cc.winSize.height * 0.5},
+        {"x": cc.winSize.width * 0.3,"y": cc.winSize.height * 0.6},
+        {"x": cc.winSize.width * 0.1,"y": cc.winSize.height * 0.7}
+    ],
+
+    _youPosList : [
+        {"x": cc.winSize.width * 1.1,"y": cc.winSize.height * 0.3},
+        {"x": cc.winSize.width * 0.9,"y": cc.winSize.height * 0.4},
+        {"x": cc.winSize.width * 1,"y": cc.winSize.height * 0.5},
+        {"x": cc.winSize.width * 0.9,"y": cc.winSize.height * 0.6},
+        {"x": cc.winSize.width * 1.1,"y": cc.winSize.height * 0.7}
+    ],
+
+    _my : null,
+    _myList : [],
+    _myCD : 0,
+
+    _you : null,
+    _youList : [],
+    _youTag : 100,
+    _youCD : 0,
+
+    _myTurn : 1,
+    _youTurn : 2,
+    _curTurn : 0,
+
+    ctor:function() 
+    {
+        this._super();
+
+    },
+
+    onEnter:function() 
+    {
+        this._super();
+
+        this.createMy();
+        this.createYou();
+
+        this.schedule(this.updataLogic.bind(this), 0.1);
+    },
+
+    createMy:function() 
+    {
+        this._my = new Swordman();
+        this.addChild(this._my);
+        this._my.x = -cc.winSize.width * 0.5;
+        this._my.y = cc.winSize.height * 0.5;
+        this._my.setCD(1);
+
+        for (var i = 0; i < this._my.getSoldier(); i++) {
+            var soldier = new Swordman();
+            this.addChild(soldier, 0, i);
+            soldier.x = -cc.winSize.width * 0.5;
+            soldier.y = cc.winSize.height * 0.5;
+            soldier.setScale(0.5);
+            this._myList.push(soldier);
+        };
+
+        this.moveMy();
+    },
+
+    moveMy:function()
+    {
+        var mAction = cc.moveTo(1, cc.p(cc.winSize.width*0.3, cc.winSize.height*0.5));
+        if (this._my)
+            this._my.runAction(mAction);
+
+        for (var i = 0; i < this._my.getSoldier(); i++) {
+            var soldier = this.getChildByTag(i);
+
+            if (!soldier)
+                continue;
+
+            var pos = this._myPosList[i];
+            var mAction2 = cc.moveTo(1, cc.p(pos.x, pos.y));
+            soldier.runAction(mAction2);
+        };
+    },
+
+    createYou:function() 
+    {
+        this._you = new Swordman();
+        this.addChild(this._you);
+        this._you.x = cc.winSize.width * 1.5;
+        this._you.y = cc.winSize.height * 0.5;
+        this._you.setCD(1.6);
+
+        for (var i = 0; i < this._you.getSoldier(); i++) {
+            var soldier = new Swordman();
+            this.addChild(soldier, 0, this._youTag+i);
+            soldier.x = cc.winSize.width * 1.5;
+            soldier.y = cc.winSize.height * 0.5;
+            soldier.setScale(0.5);
+            this._youList.push(soldier);
+        };
+
+        this.moveYou();
+    },
+
+    moveYou:function()
+    {
+        var mAction = cc.moveTo(1, cc.p(cc.winSize.width*0.6, cc.winSize.height*0.5));
+        if (this._you)
+            this._you.runAction(mAction);
+
+        for (var i = 0; i < this._you.getSoldier(); i++) {
+            var soldier = this.getChildByTag(this._youTag+i);
+
+            if (!soldier)
+                continue;
+
+            var pos = this._youPosList[i];
+            var mAction2 = cc.moveTo(1, cc.p(pos.x, pos.y));
+            soldier.runAction(mAction2);
+        };
+    },
+
+    updataLogic:function(dt) 
+    {
+        // 如果我不在攻击状态 记录cd轮转并判断是否进攻
+        if (this._my && this._my._statue != rS.ATTACK) {
+            this._myCD += dt;
+            // cd 转完了
+            if (this._myCD >= this._my._cd) {
+                this._myCD = 0;
+                this.attackMode(this._myTurn);
+                return ;
+            };
+        };
+
+        // 计算敌人的cd
+        if (this._you && this._you._statue != rS.ATTACK) {
+            this._youCD += dt;
+            // cd 转完了
+            if (this._youCD >= this._you._cd) {
+                this._youCD = 0;
+                this.attackMode(this._youTurn);
+                return ;
+            };
+        };
+    },
+
+    attackMode:function(mode) 
+    {
+        this._curTurn = mode;
+        if (this._curTurn == this._myTurn) {
+            this._my.setStatue(rS.ATTACK);
+            this._you.setStatue(rS.HINT);
+        }
+        else if (this._curTurn == this._youTurn) {
+            this._you.setStatue(rS.ATTACK);
+            this._my.setStatue(rS.HINT);
+        }
+        this.scheduleOnce(this.playAction.bind(this), 2);
+    },
+
+    playAction:function() 
+    {
+        if (this._curTurn == this._myTurn) {
+
+        }
+        else if (this._curTurn == this._youTurn) {
+
+        }
+
+
+        this._my.setStatue(rS.STANDBY);
+        this._you.setStatue(rS.STANDBY);
+    }
+});
+
