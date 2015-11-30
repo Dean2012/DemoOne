@@ -15,9 +15,19 @@ var Swordman = BaseRole.extend({
         this._name = "剑士"
     },
 
+    setNPC:function() 
+    {
+        this._isNPC = true;
+    },
+
     setCD:function(cd) 
     {
     	this._cd = cd;
+    },
+
+    setSoldier:function(_hp) 
+    {
+        this._hp = _hp ? _hp : 5;
     },
 
     getSoldier:function()
